@@ -7,6 +7,10 @@ async function bootstrap() {
 
   app.enableCors({ origin: '*' });
 
+  // Simple health check endpoint
+  const httpAdapter = app.getHttpAdapter();
+  httpAdapter.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
+
   const config = new DocumentBuilder()
     .setTitle('Home Poker Planning API')
     .setDescription('REST API for the Planning Poker app')

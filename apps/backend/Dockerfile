@@ -22,5 +22,5 @@ COPY --from=builder /app/apps/backend/dist ./dist
 COPY --from=builder /app/apps/backend/node_modules ./node_modules
 COPY --from=builder /app/apps/backend/package.json ./
 COPY --from=builder /app/node_modules/.pnpm ./node_modules/.pnpm
-
-CMD ["node", "dist/main"]
+# Seed then start — seed is idempotent (skips if Fibonacci deck exists)
+CMD ["sh", "-c", "node dist/seed.js 2>/dev/null || true && node dist/main"]
