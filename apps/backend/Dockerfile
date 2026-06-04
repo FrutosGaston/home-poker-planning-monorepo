@@ -5,7 +5,7 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 # Copy monorepo root files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 
 # Copy packages needed for build
 COPY packages/shared ./packages/shared
