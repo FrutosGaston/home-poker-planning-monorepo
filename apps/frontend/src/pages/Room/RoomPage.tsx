@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Box, CircularProgress, Drawer, Fab, IconButton,
+  Box, CircularProgress, Drawer, IconButton,
   Paper, Toolbar, Tooltip, Typography,
 } from '@mui/material';
 import { List, Share } from '@mui/icons-material';
@@ -10,7 +10,7 @@ import { useRoomStore } from '../../store/roomStore';
 import { roomService } from '../../services/roomService';
 import { taskService } from '../../services/taskService';
 import { guestUserService } from '../../services/guestUserService';
-import { useSocket } from '../../hooks/useSocket';
+import { useSocket, useJoinRoom, useHeartbeat } from '../../hooks/useSocket';
 import { SocketEvents } from '@poker/shared';
 import UserInRoom from '../../components/room/UserInRoom';
 import EstimationForm from '../../components/room/EstimationForm';
@@ -28,7 +28,7 @@ export default function RoomPage() {
   const {
     room, tasks, users, currentTask, currentUser,
     setRoom, setTasks, setUsers, setCurrentTask, setCurrentUser,
-    addTask, updateTask, addUser, addEstimation, clearEstimations,
+    addTask, updateTask, addUser, removeUser, addEstimation, clearEstimations,
   } = useRoomStore();
 
   const [loading, setLoading] = useState(true);
@@ -49,8 +49,23 @@ export default function RoomPage() {
       setTasks(loadedTasks);
       setUsers(loadedUsers);
 
-      const loggedUser = guestUserService.getLoggedUser(r.id);
-      if (loggedUser) setCurrentUser(loggedUser);
+      const stored = guestUserService.getLoggedUser(r.id);
+      if (stored) {
+        // Check if the stored user still exists in the DB (may have been kicked for inactivity)
+        const stillExists = loadedUsers.find((u) => u.id === stored.id);
+        if (stillExists) {
+          setCurrentUser(stillExists);
+        } else {
+          // Recreate with same name and spectator setting
+          const rejoined = await guestUserService.create({
+            name: stored.name,
+            roomId: r.id,
+            spectator: stored.spectator,
+          });
+          guestUserService.saveLoggedUser(rejoined);
+          setCurrentUser(rejoined);
+        }
+      }
 
       const activeTask = loadedTasks.find((t: Task) => t.id === r.selectedTaskId) ?? loadedTasks[0] ?? null;
       setCurrentTask(activeTask);
@@ -71,27 +86,43 @@ export default function RoomPage() {
     setRevealed(false);
   }, [currentTask]);
 
+  // Join the socket.io room channel once
+  useJoinRoom(room?.id ?? null);
+
+  // Send heartbeat every 30s so server knows we're alive
+  useHeartbeat(currentUser?.id ?? null);
+
   // Socket.io subscriptions
-  useSocket(SocketEvents.ESTIMATION_CREATED, room?.id ?? null, useCallback((e) => addEstimation(e), []));
-  useSocket(SocketEvents.TASK_ESTIMATED, room?.id ?? null, useCallback((t) => updateTask(t), []));
-  useSocket(SocketEvents.TASK_CREATED, room?.id ?? null, useCallback((t) => addTask(t), []));
-  useSocket(SocketEvents.ESTIMATIONS_INVALIDATED, room?.id ?? null, useCallback((t) => { clearEstimations(t.id); setRevealed(false); }, []));
-  useSocket(SocketEvents.ROOM_UPDATED, room?.id ?? null, useCallback((r) => {
+  useSocket(SocketEvents.ESTIMATION_CREATED, useCallback((e) => addEstimation(e), []));
+  useSocket(SocketEvents.TASK_ESTIMATED, useCallback((t) => updateTask(t), []));
+  useSocket(SocketEvents.TASK_CREATED, useCallback((t) => {
+    addTask(t);
+    if (!useRoomStore.getState().currentTask) setCurrentTask(t);
+  }, []));
+  useSocket(SocketEvents.ESTIMATIONS_INVALIDATED, useCallback((t) => { clearEstimations(t.id); setRevealed(false); }, []));
+  useSocket(SocketEvents.ROOM_UPDATED, useCallback((r) => {
     setRoom(r);
     const task = tasks.find((t) => t.id === r.selectedTaskId) ?? null;
     if (task) { setCurrentTask(task); setRevealed(false); }
   }, [tasks]));
-  useSocket(SocketEvents.GUEST_USER_CREATED, room?.id ?? null, useCallback((u) => addUser(u), []));
+  useSocket(SocketEvents.GUEST_USER_CREATED, useCallback((u) => addUser(u), []));
+  useSocket(SocketEvents.GUEST_USER_LEFT, useCallback((u) => removeUser(u.id), []));
 
-  // Split users around the table
+  // Split users around the table:
+  // - left and right get 1 user each (2 if >12 users)
+  // - above and below share the rest evenly
   const { above, below, left, right } = useMemo(() => {
     const voters = users.filter((u) => !u.spectator);
-    const quarter = Math.ceil(voters.length / 4);
+    const sideSlots = voters.length > 16 ? 2 : 1;
+    const left = voters.slice(0, sideSlots);
+    const right = voters.slice(sideSlots, sideSlots * 2);
+    const remaining = voters.slice(sideSlots * 2);
+    const half = Math.ceil(remaining.length / 2);
     return {
-      above: voters.slice(0, quarter),
-      below: voters.slice(quarter, quarter * 2),
-      left: voters.slice(quarter * 2, quarter * 3),
-      right: voters.slice(quarter * 3),
+      above: remaining.slice(0, half),
+      below: remaining.slice(half),
+      left,
+      right,
     };
   }, [users]);
 
@@ -101,10 +132,14 @@ export default function RoomPage() {
   );
 
   const allVoted = useMemo(
-    () => users.filter((u) => !u.spectator).length > 0 &&
-      users.filter((u) => !u.spectator).every((u) => currentTask?.estimations.some((e) => e.guestUserId === u.id)),
+    () => users.filter((u) => !u.spectator && !u.inactive).length > 0 &&
+      users.filter((u) => !u.spectator && !u.inactive).every((u) => currentTask?.estimations.some((e) => e.guestUserId === u.id)),
     [users, currentTask]
   );
+
+  useEffect(() => {
+    if (allVoted) setRevealed(true);
+  }, [allVoted]);
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}><CircularProgress /></Box>;
 
@@ -136,7 +171,7 @@ export default function RoomPage() {
       {room && <ShareRoomDialog open={shareOpen} onClose={() => setShareOpen(false)} uuid={room.uuid} />}
 
       {/* Main content */}
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         {/* Room header */}
         <Toolbar sx={{ borderBottom: 1, borderColor: 'divider', gap: 1 }}>
           <IconButton onClick={() => setDrawerOpen(true)}>
@@ -158,17 +193,17 @@ export default function RoomPage() {
         </Toolbar>
 
         {/* Table area */}
-        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, p: 2 }}>
+        <Box sx={{ flexGrow: 1, minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, p: 2 }}>
           {/* Users above */}
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%', maxWidth: 1200 }}>
             {above.map((u) => (
               <UserInRoom key={u.id} user={u} currentTask={currentTask} isCurrentUser={u.id === currentUser?.id} revealed={revealed} />
             ))}
           </Box>
 
           {/* Middle row: left | table | right */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, width: '100%', justifyContent: 'center' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', justifyContent: 'center' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', gap: 4, alignSelf: 'stretch', py: 2 }}>
               {left.map((u) => (
                 <UserInRoom key={u.id} user={u} currentTask={currentTask} isCurrentUser={u.id === currentUser?.id} revealed={revealed} />
               ))}
@@ -178,9 +213,15 @@ export default function RoomPage() {
             <Paper
               elevation={4}
               sx={{
-                minWidth: 260, minHeight: 140, borderRadius: 8,
+                flexGrow: 1,
+                maxWidth: 1200,
+                height: '30vh',
+                minHeight: 160,
+                borderRadius: '24px',
+                border: '4px solid #80CBC4',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                bgcolor: 'action.hover', p: 3, gap: 1,
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0D2B27' : '#E0F2F1',
+                p: 3, gap: 1,
               }}
             >
               {currentTask?.finalEstimation ? (
@@ -198,7 +239,7 @@ export default function RoomPage() {
               )}
             </Paper>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', gap: 4, alignSelf: 'stretch', py: 2 }}>
               {right.map((u) => (
                 <UserInRoom key={u.id} user={u} currentTask={currentTask} isCurrentUser={u.id === currentUser?.id} revealed={revealed} />
               ))}
@@ -206,7 +247,7 @@ export default function RoomPage() {
           </Box>
 
           {/* Users below */}
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%', maxWidth: 1200 }}>
             {below.map((u) => (
               <UserInRoom key={u.id} user={u} currentTask={currentTask} isCurrentUser={u.id === currentUser?.id} revealed={revealed} />
             ))}
@@ -221,10 +262,10 @@ export default function RoomPage() {
         )}
 
         {/* Estimation controls */}
-        {currentTask && currentUser && !currentUser.spectator && (
+        {currentUser && !currentUser.spectator && (
           <Paper elevation={3} sx={{ borderTop: 1, borderColor: 'divider' }}>
             <EstimationForm
-              task={currentTask}
+              task={currentTask ?? null}
               currentUser={currentUser}
               cards={room?.deck.cards ?? []}
               isHost={isHost}
@@ -236,15 +277,6 @@ export default function RoomPage() {
         )}
       </Box>
 
-      {/* FAB: Tasks */}
-      <Fab
-        color="primary"
-        size="small"
-        sx={{ position: 'fixed', bottom: 24, left: 24 }}
-        onClick={() => setDrawerOpen(true)}
-      >
-        <List />
-      </Fab>
     </Box>
   );
 }

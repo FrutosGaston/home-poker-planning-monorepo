@@ -17,6 +17,7 @@ interface RoomState {
   addTask: (task: Task) => void;
   updateTask: (task: Task) => void;
   addUser: (user: GuestUser) => void;
+  removeUser: (userId: string) => void;
   addEstimation: (estimation: Estimation) => void;
   clearEstimations: (taskId: string) => void;
 }
@@ -46,6 +47,9 @@ export const useRoomStore = create<RoomState>((set) => ({
     set((s) => ({
       users: s.users.find((u) => u.id === user.id) ? s.users : [...s.users, user],
     })),
+
+  removeUser: (userId) =>
+    set((s) => ({ users: s.users.filter((u) => u.id !== userId) })),
 
   addEstimation: (estimation) =>
     set((s) => {

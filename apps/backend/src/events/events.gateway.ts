@@ -1,15 +1,42 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody } from '@nestjs/websockets';
-import { Server } from 'socket.io';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
 import { SocketEvents, ServerToClientEvents, ClientToServerEvents } from '@poker/shared';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { GuestUser, GuestUserDocument } from '../schemas/guest-user.schema';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EventsGateway {
   @WebSocketServer()
   server: Server<ClientToServerEvents, ServerToClientEvents>;
 
+  constructor(
+    @InjectModel(GuestUser.name) private guestUserModel: Model<GuestUserDocument>,
+  ) {}
+
   @SubscribeMessage('room:join')
-  handleJoinRoom(@MessageBody() roomId: string) {
+  handleJoinRoom(@ConnectedSocket() socket: Socket, @MessageBody() roomId: string) {
+    socket.join(`room:${roomId}`);
     return roomId;
+  }
+
+  @SubscribeMessage('heartbeat')
+  async handleHeartbeat(@MessageBody() userId: string) {
+    const prev = await this.guestUserModel.findById(userId).lean();
+    await this.guestUserModel.findByIdAndUpdate(userId, { lastSeen: new Date(), inactive: false });
+
+    // If user was previously inactive, broadcast they're back
+    if (prev?.inactive) {
+      const dto = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        id: (prev as any)._id.toString(),
+        name: prev.name,
+        roomId: prev.roomId.toString(),
+        spectator: prev.spectator,
+        inactive: false,
+      };
+      this.emitToRoom(prev.roomId.toString(), SocketEvents.GUEST_USER_CREATED, dto);
+    }
   }
 
   emitToRoom<K extends keyof ServerToClientEvents>(

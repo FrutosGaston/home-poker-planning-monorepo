@@ -1,4 +1,5 @@
 import { AppBar, Box, Toolbar, IconButton, Select, MenuItem, Tooltip } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { DarkMode, LightMode } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 
@@ -14,6 +15,7 @@ const LANGUAGES = [
 
 export default function AppToolbar({ dark, onToggleTheme }: Props) {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
 
   const handleLangChange = (lang: string) => {
     i18n.changeLanguage(lang);
@@ -24,7 +26,23 @@ export default function AppToolbar({ dark, onToggleTheme }: Props) {
     <AppBar position="static" color="primary" enableColorOnDark>
       <Toolbar sx={{ gap: 1 }}>
         <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-          <img src="/logo.svg" alt="Planning Poker" height={36} style={{ display: 'block' }} />
+          <Box
+            component="a"
+            href="/"
+            onClick={(e: React.MouseEvent) => { if (!e.ctrlKey && !e.metaKey) { e.preventDefault(); navigate('/'); } }}
+            sx={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}
+          >
+            <Box sx={{
+              borderRadius: '10px',
+              border: '2px solid rgba(255,255,255,0.4)',
+              overflow: 'hidden',
+              display: 'flex',
+              bgcolor: 'rgba(255,255,255,0.12)',
+              p: '2px',
+            }}>
+              <img src="/logo.svg" alt="Planning Poker" height={32} style={{ display: 'block', borderRadius: '7px' }} />
+            </Box>
+          </Box>
         </Box>
 
         <Select

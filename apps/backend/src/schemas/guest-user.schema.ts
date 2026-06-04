@@ -8,6 +8,8 @@ export class GuestUser {
   @Prop({ required: true }) name: string;
   @Prop({ required: true }) roomId: string;
   @Prop({ default: false }) spectator: boolean;
+  @Prop({ default: false }) inactive: boolean;
+  @Prop({ default: () => new Date() }) lastSeen: Date;
 }
 
 export const GuestUserSchema = SchemaFactory.createForClass(GuestUser);

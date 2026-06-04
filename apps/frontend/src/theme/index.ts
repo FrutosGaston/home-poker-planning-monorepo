@@ -4,8 +4,8 @@ export const getTheme = (dark: boolean) =>
   createTheme({
     palette: {
       mode: dark ? 'dark' : 'light',
-      primary: { main: '#7c4dff' },
-      secondary: { main: '#ff4081' },
+      primary: { main: '#00897B' },
+      secondary: { main: '#26A69A' },
     },
     shape: { borderRadius: 12 },
   });

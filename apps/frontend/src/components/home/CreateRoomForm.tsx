@@ -24,12 +24,15 @@ export default function CreateRoomForm() {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const { control, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const { control, handleSubmit, formState: { errors }, setValue } = useForm<FormValues>({
     defaultValues: { userName: '', roomTitle: '', roomDescription: '', deckId: '' },
   });
 
   useEffect(() => {
-    deckService.findDecks().then(setDecks);
+    deckService.findDecks().then((d) => {
+      setDecks(d);
+      if (d.length > 0) setValue('deckId', d[0].id);
+    });
   }, []);
 
   const onSubmit = async (values: FormValues) => {

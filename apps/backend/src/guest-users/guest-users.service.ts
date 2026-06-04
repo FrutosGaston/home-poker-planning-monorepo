@@ -30,6 +30,7 @@ export class GuestUsersService {
       name: user.name,
       roomId: user.roomId.toString(),
       spectator: user.spectator,
+      inactive: user.inactive ?? false,
     };
   }
 }

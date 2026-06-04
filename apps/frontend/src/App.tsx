@@ -7,7 +7,7 @@ import HomePage from './pages/Home/HomePage';
 import RoomPage from './pages/Room/RoomPage';
 
 export default function App() {
-  const [dark, setDark] = useState(() => localStorage.getItem('darkMode') === 'true');
+  const [dark, setDark] = useState(() => localStorage.getItem('darkMode') !== 'false');
   const theme = useMemo(() => getTheme(dark), [dark]);
 
   const toggleTheme = () => {

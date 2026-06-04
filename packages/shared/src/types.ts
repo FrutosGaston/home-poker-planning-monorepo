@@ -39,4 +39,5 @@ export interface GuestUser {
   name: string;
   roomId: string;
   spectator: boolean;
+  inactive?: boolean;
 }

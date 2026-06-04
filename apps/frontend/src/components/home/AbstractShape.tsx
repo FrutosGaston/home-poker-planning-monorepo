@@ -1,11 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Box } from '@mui/material';
-
-const PATHS = [
-  'M50,0 C70,10 90,30 80,50 C70,70 30,80 10,60 C-10,40 10,10 50,0Z',
-  'M60,5 C80,15 95,40 75,60 C55,80 20,75 5,55 C-10,35 15,0 60,5Z',
-  'M45,2 C68,8 92,35 78,58 C64,80 25,82 8,60 C-8,38 12,5 45,2Z',
-];
 
 interface Props {
   color?: string;
@@ -14,32 +8,44 @@ interface Props {
   left?: string | number;
   right?: string | number;
   bottom?: string | number;
+  initialPath: string;
+  finalPath: string;
+  duration?: number;
+  floatX?: number;
+  floatY?: number;
 }
 
-export default function AbstractShape({ color = '#7c4dff33', size = 200, top, left, right, bottom }: Props) {
-  const pathRef = useRef<SVGPathElement>(null);
-  const frameRef = useRef(0);
-  const indexRef = useRef(0);
-  const progressRef = useRef(0);
-
-  useEffect(() => {
-    const animate = () => {
-      progressRef.current += 0.005;
-      if (progressRef.current >= 1) {
-        progressRef.current = 0;
-        indexRef.current = (indexRef.current + 1) % PATHS.length;
-      }
-      frameRef.current = requestAnimationFrame(animate);
-    };
-    frameRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frameRef.current);
-  }, []);
-
+export default function AbstractShape({
+  color = '#00897B33',
+  size = 500,
+  top, left, right, bottom,
+  initialPath,
+  finalPath,
+  duration = 30,
+  floatX = 20,
+  floatY = 30,
+}: Props) {
   return (
-    <Box sx={{ position: 'absolute', top, left, right, bottom, opacity: 0.6, pointerEvents: 'none', zIndex: 0 }}>
-      <svg width={size} height={size} viewBox="0 0 100 100">
-        <path ref={pathRef} d={PATHS[0]} fill={color} />
-      </svg>
+    <Box sx={{ position: 'absolute', top, left, right, bottom, pointerEvents: 'none', zIndex: 0, width: size, height: size }}>
+      <motion.div
+        animate={{
+          x: [0, floatX, -floatX / 2, floatX / 3, 0],
+          y: [0, -floatY, floatY / 2, -floatY / 3, 0],
+        }}
+        transition={{ duration: duration * 0.8, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ width: '100%', height: '100%' }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width={size} height={size}>
+          <path fill={color} fillRule="nonzero">
+            <animate
+              dur={`${duration}s`}
+              repeatCount="indefinite"
+              attributeName="d"
+              values={`${initialPath};${finalPath};${initialPath}`}
+            />
+          </path>
+        </svg>
+      </motion.div>
     </Box>
   );
 }
