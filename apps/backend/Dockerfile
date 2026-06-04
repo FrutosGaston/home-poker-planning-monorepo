@@ -8,7 +8,7 @@ RUN npm install -g pnpm
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 
 # Disable supply-chain age policy via project .npmrc
-RUN echo "minimum-release-age=0" >> .npmrc
+RUN echo "minimum-release-age=0s" >> .npmrc
 
 # Copy packages needed for build
 COPY packages/shared ./packages/shared
