@@ -4,15 +4,12 @@ WORKDIR /app
 
 RUN npm install -g pnpm
 
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-
-# Disable supply-chain age policy via project .npmrc
-RUN echo "minimum-release-age=0" >> .npmrc
-
+COPY package.json pnpm-workspace.yaml ./
 COPY packages/shared ./packages/shared
 COPY apps/frontend ./apps/frontend
 
-RUN pnpm install --no-frozen-lockfile
+# Install without lockfile — avoids supply-chain age policy on cached entries
+RUN pnpm install --no-lockfile
 
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL

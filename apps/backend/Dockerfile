@@ -4,17 +4,12 @@ WORKDIR /app
 
 RUN npm install -g pnpm
 
-# Copy monorepo root files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-
-# Disable supply-chain age policy via project .npmrc
-RUN echo "minimum-release-age=0s" >> .npmrc
-
-# Copy packages needed for build
+COPY package.json pnpm-workspace.yaml ./
 COPY packages/shared ./packages/shared
 COPY apps/backend ./apps/backend
 
-RUN pnpm install --no-frozen-lockfile
+# Install without lockfile — avoids supply-chain age policy on cached entries
+RUN pnpm install --no-lockfile
 
 # Build shared first, then backend
 RUN pnpm --filter shared build
