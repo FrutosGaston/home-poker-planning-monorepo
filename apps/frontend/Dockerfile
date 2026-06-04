@@ -8,7 +8,7 @@ COPY package.json pnpm-workspace.yaml ./
 COPY packages/shared ./packages/shared
 COPY apps/frontend ./apps/frontend
 
-RUN pnpm install --no-lockfile --allow-build=@nestjs/core,@scarf/scarf,unrs-resolver
+RUN pnpm install --no-lockfile
 
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL

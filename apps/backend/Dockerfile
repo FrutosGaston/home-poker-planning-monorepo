@@ -8,7 +8,7 @@ COPY package.json pnpm-workspace.yaml ./
 COPY packages/shared ./packages/shared
 COPY apps/backend ./apps/backend
 
-RUN pnpm install --no-lockfile --allow-build=@nestjs/core,@scarf/scarf,unrs-resolver
+RUN pnpm install --no-lockfile
 
 # Build shared first, then backend
 RUN pnpm --filter shared build
