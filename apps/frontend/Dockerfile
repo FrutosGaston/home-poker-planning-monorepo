@@ -4,10 +4,11 @@ WORKDIR /app
 
 RUN npm install -g pnpm
 
-# Disable pnpm supply-chain age policy before any install
-RUN pnpm config set minimum-release-age 0 --global
-
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+
+# Disable supply-chain age policy via project .npmrc
+RUN echo "minimum-release-age=0" >> .npmrc
+
 COPY packages/shared ./packages/shared
 COPY apps/frontend ./apps/frontend
 
