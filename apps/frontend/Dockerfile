@@ -8,7 +8,7 @@ COPY package.json pnpm-workspace.yaml pnpm.yaml ./
 COPY packages/shared ./packages/shared
 COPY apps/frontend ./apps/frontend
 
-RUN pnpm install --no-lockfile
+RUN pnpm install --no-lockfile --ignore-scripts
 
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL

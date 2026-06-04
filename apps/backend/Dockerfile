@@ -8,7 +8,7 @@ COPY package.json pnpm-workspace.yaml pnpm.yaml ./
 COPY packages/shared ./packages/shared
 COPY apps/backend ./apps/backend
 
-RUN pnpm install --no-lockfile
+RUN pnpm install --no-lockfile --ignore-scripts
 
 # Build shared first, then backend
 RUN pnpm --filter shared build
