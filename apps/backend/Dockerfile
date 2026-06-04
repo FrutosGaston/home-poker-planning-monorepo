@@ -8,8 +8,7 @@ COPY package.json pnpm-workspace.yaml ./
 COPY packages/shared ./packages/shared
 COPY apps/backend ./apps/backend
 
-# Install without lockfile — avoids supply-chain age policy on cached entries
-RUN pnpm install --no-lockfile
+RUN pnpm install --no-lockfile --allow-build=@nestjs/core,@scarf/scarf,unrs-resolver
 
 # Build shared first, then backend
 RUN pnpm --filter shared build
