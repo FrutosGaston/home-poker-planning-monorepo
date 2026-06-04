@@ -1,0 +1,17 @@
+{
+  "name": "home-poker-planning-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend start:dev",
+    "dev": "pnpm --parallel --filter frontend --filter backend dev",
+    "build": "pnpm --filter shared build && pnpm --recursive --filter '!shared' build",
+    "lint": "pnpm --recursive lint",
+    "test": "pnpm --recursive test"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  }
+}
