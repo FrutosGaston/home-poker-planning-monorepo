@@ -1,19 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { GuestUser, GuestUserDocument } from '../schemas/guest-user.schema';
 import { EventsGateway } from '../events/events.gateway';
 import { SocketEvents } from '@poker/shared';
 
 @Injectable()
 export class GuestUsersService {
-  constructor(private prisma: PrismaService, private events: EventsGateway) {}
+  constructor(
+    @InjectModel(GuestUser.name) private guestUserModel: Model<GuestUserDocument>,
+    private events: EventsGateway,
+  ) {}
 
-  async findByRoom(roomId: number) {
-    return this.prisma.guestUser.findMany({ where: { roomId } });
+  async findByRoom(roomId: string) {
+    const users = await this.guestUserModel.find({ roomId }).lean();
+    return users.map(this.toDTO);
   }
 
-  async create(data: { name: string; roomId: number; spectator: boolean }) {
-    const user = await this.prisma.guestUser.create({ data });
-    this.events.emitToRoom(data.roomId, SocketEvents.GUEST_USER_CREATED, user as any);
-    return user;
+  async create(data: { name: string; roomId: string; spectator: boolean }) {
+    const user = await this.guestUserModel.create(data);
+    const dto = this.toDTO(user.toObject());
+    this.events.emitToRoom(data.roomId, SocketEvents.GUEST_USER_CREATED, dto);
+    return dto;
+  }
+
+  private toDTO(user: any) {
+    return {
+      id: user._id.toString(),
+      name: user.name,
+      roomId: user.roomId.toString(),
+      spectator: user.spectator,
+    };
   }
 }

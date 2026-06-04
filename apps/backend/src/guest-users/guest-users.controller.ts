@@ -9,11 +9,11 @@ export class GuestUsersController {
 
   @Get()
   findByRoom(@Query('roomId') roomId: string) {
-    return this.guestUsersService.findByRoom(+roomId);
+    return this.guestUsersService.findByRoom(roomId);
   }
 
   @Post()
-  create(@Body() body: { name: string; roomId: number; spectator: boolean }) {
+  create(@Body() body: { name: string; roomId: string; spectator: boolean }) {
     return this.guestUsersService.create(body);
   }
 }

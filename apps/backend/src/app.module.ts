@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from './prisma/prisma.module';
+import { MongooseModule } from '@nestjs/mongoose';
 import { EventsModule } from './events/events.module';
 import { RoomsModule } from './rooms/rooms.module';
 import { TasksModule } from './tasks/tasks.module';
@@ -8,7 +8,7 @@ import { DecksModule } from './decks/decks.module';
 
 @Module({
   imports: [
-    PrismaModule,
+    MongooseModule.forRoot(process.env.MONGODB_URI ?? 'mongodb://localhost:27017/poker_planning'),
     EventsModule,
     RoomsModule,
     TasksModule,

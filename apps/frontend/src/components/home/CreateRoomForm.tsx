@@ -15,7 +15,7 @@ interface FormValues {
   userName: string;
   roomTitle: string;
   roomDescription: string;
-  deckId: number;
+  deckId: string;
 }
 
 export default function CreateRoomForm() {
@@ -25,7 +25,7 @@ export default function CreateRoomForm() {
   const [loading, setLoading] = useState(false);
 
   const { control, handleSubmit, formState: { errors } } = useForm<FormValues>({
-    defaultValues: { userName: '', roomTitle: '', roomDescription: '', deckId: 0 },
+    defaultValues: { userName: '', roomTitle: '', roomDescription: '', deckId: '' },
   });
 
   useEffect(() => {
@@ -39,7 +39,6 @@ export default function CreateRoomForm() {
         title: values.roomTitle,
         description: values.roomDescription,
         deckId: values.deckId,
-        guestUserName: values.userName,
       });
       const user = await guestUserService.create({
         name: values.userName,
@@ -66,13 +65,7 @@ export default function CreateRoomForm() {
           maxLength: { value: 20, message: t('planning.home.name.max') },
         }}
         render={({ field }) => (
-          <TextField
-            {...field}
-            label={t('planning.home.name')}
-            error={!!errors.userName}
-            helperText={errors.userName?.message}
-            fullWidth
-          />
+          <TextField {...field} label={t('planning.home.name')} error={!!errors.userName} helperText={errors.userName?.message} fullWidth />
         )}
       />
 
@@ -85,13 +78,7 @@ export default function CreateRoomForm() {
           maxLength: { value: 20, message: t('planning.home.room-form.title.max') },
         }}
         render={({ field }) => (
-          <TextField
-            {...field}
-            label={t('planning.home.room-form.title')}
-            error={!!errors.roomTitle}
-            helperText={errors.roomTitle?.message}
-            fullWidth
-          />
+          <TextField {...field} label={t('planning.home.room-form.title')} error={!!errors.roomTitle} helperText={errors.roomTitle?.message} fullWidth />
         )}
       />
 
@@ -100,22 +87,14 @@ export default function CreateRoomForm() {
         control={control}
         rules={{ maxLength: { value: 255, message: t('planning.home.room-form.description.max') } }}
         render={({ field }) => (
-          <TextField
-            {...field}
-            label={t('planning.home.room-form.description')}
-            error={!!errors.roomDescription}
-            helperText={errors.roomDescription?.message}
-            fullWidth
-            multiline
-            rows={2}
-          />
+          <TextField {...field} label={t('planning.home.room-form.description')} error={!!errors.roomDescription} helperText={errors.roomDescription?.message} fullWidth multiline rows={2} />
         )}
       />
 
       <Controller
         name="deckId"
         control={control}
-        rules={{ validate: (v) => v !== 0 || t('planning.home.room-form.deck.mandatory') }}
+        rules={{ validate: (v) => v !== '' || t('planning.home.room-form.deck.mandatory') }}
         render={({ field }) => (
           <FormControl fullWidth error={!!errors.deckId}>
             <InputLabel>{t('planning.home.room-form.deck')}</InputLabel>

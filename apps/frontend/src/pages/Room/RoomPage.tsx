@@ -183,9 +183,9 @@ export default function RoomPage() {
                 bgcolor: 'action.hover', p: 3, gap: 1,
               }}
             >
-              {currentTask?.estimation ? (
+              {currentTask?.finalEstimation ? (
                 <Typography variant="h4" sx={{ fontWeight: 700 }} color="primary">
-                  {t('planning.room.task.final-estimation', { estimation: currentTask.estimation.card.value })}
+                  {t('planning.room.task.final-estimation', { estimation: currentTask.finalEstimation.value })}
                 </Typography>
               ) : currentTask ? (
                 <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center' }}>

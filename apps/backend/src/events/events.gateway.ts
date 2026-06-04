@@ -8,13 +8,12 @@ export class EventsGateway {
   server: Server<ClientToServerEvents, ServerToClientEvents>;
 
   @SubscribeMessage('room:join')
-  handleJoinRoom(@MessageBody() roomId: number) {
-    // Client joins a socket.io room to receive room-specific events
+  handleJoinRoom(@MessageBody() roomId: string) {
     return roomId;
   }
 
   emitToRoom<K extends keyof ServerToClientEvents>(
-    roomId: number,
+    roomId: string,
     event: K,
     data: Parameters<ServerToClientEvents[K]>[0],
   ) {

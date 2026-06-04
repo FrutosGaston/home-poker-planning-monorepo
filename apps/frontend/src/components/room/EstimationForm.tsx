@@ -19,7 +19,7 @@ interface Props {
 export default function EstimationForm({ task, currentUser, cards, isHost, revealed, onReveal, onReset }: Props) {
   const { t } = useTranslation();
   const updateTask = useRoomStore((s) => s.updateTask);
-  const [finalCardId, setFinalCardId] = useState<number>(0);
+  const [finalCardId, setFinalCardId] = useState<string>('');
   const [finalError, setFinalError] = useState('');
   const myEstimation = task.estimations.find((e) => e.guestUserId === currentUser.id);
 
@@ -53,11 +53,11 @@ export default function EstimationForm({ task, currentUser, cards, isHost, revea
                 {cards.map((card) => (
                   <Card
                     key={card.id}
-                    elevation={myEstimation?.cardId === card.id ? 8 : 2}
+                    elevation={myEstimation?.card.id === card.id ? 8 : 2}
                     sx={{
                       width: 48, height: 64, cursor: 'pointer',
-                      border: myEstimation?.cardId === card.id ? '2px solid' : '1px solid',
-                      borderColor: myEstimation?.cardId === card.id ? 'primary.main' : 'divider',
+                      border: myEstimation?.card.id === card.id ? '2px solid' : '1px solid',
+                      borderColor: myEstimation?.card.id === card.id ? 'primary.main' : 'divider',
                       transition: 'transform 0.15s',
                       '&:hover': { transform: 'translateY(-4px)' },
                     }}
@@ -82,7 +82,7 @@ export default function EstimationForm({ task, currentUser, cards, isHost, revea
                 <Select
                   value={finalCardId}
                   label={t('planning.room.card.label')}
-                  onChange={(e) => setFinalCardId(Number(e.target.value))}
+                  onChange={(e) => setFinalCardId(e.target.value)}
                 >
                   {cards.map((c) => (
                     <MenuItem key={c.id} value={c.id}>{c.value}</MenuItem>

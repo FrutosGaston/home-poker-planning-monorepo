@@ -17,7 +17,7 @@ const getSocket = () => {
 
 export const useSocket = <K extends keyof ServerToClientEvents>(
   event: K | null,
-  roomId: number | null,
+  roomId: string | null,
   onMessage: (data: Parameters<ServerToClientEvents[K]>[0]) => void,
 ) => {
   const onMessageRef = useRef(onMessage);

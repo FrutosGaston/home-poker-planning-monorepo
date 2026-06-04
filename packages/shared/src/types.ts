@@ -1,46 +1,42 @@
 export interface Card {
-  id: number;
+  id: string;
   value: string;
-  deckId: number;
 }
 
 export interface Deck {
-  id: number;
+  id: string;
   name: string;
   cards: Card[];
 }
 
 export interface Estimation {
-  id: number;
+  id: string;
   card: Card;
-  cardId: number;
-  taskId: number;
-  guestUserId: number;
+  guestUserId: string;
   active: boolean;
 }
 
 export interface Task {
-  id: number;
-  roomId: number;
+  id: string;
+  roomId: string;
   title: string;
-  estimationId?: number;
-  estimation?: Estimation;
+  finalEstimation: Card | null;
   estimations: Estimation[];
 }
 
 export interface Room {
-  id: number;
+  id: string;
   uuid: string;
-  deckId: number;
+  deckId: string;
   deck: Deck;
-  selectedTaskId?: number;
+  selectedTaskId?: string;
   title: string;
   description?: string;
 }
 
 export interface GuestUser {
-  id: number;
+  id: string;
   name: string;
-  roomId: number;
+  roomId: string;
   spectator: boolean;
 }

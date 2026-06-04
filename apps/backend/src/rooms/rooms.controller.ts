@@ -8,7 +8,7 @@ export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
   @Post()
-  create(@Body() body: { title: string; description?: string; deckId: number }) {
+  create(@Body() body: { title: string; description?: string; deckId: string }) {
     return this.roomsService.create(body);
   }
 
@@ -18,7 +18,7 @@ export class RoomsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() body: { selectedTaskId?: number }) {
-    return this.roomsService.update(+id, body);
+  update(@Param('id') id: string, @Body() body: { selectedTaskId?: string }) {
+    return this.roomsService.update(id, body);
   }
 }

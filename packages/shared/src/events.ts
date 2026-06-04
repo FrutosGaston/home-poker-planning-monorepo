@@ -24,5 +24,5 @@ export interface ServerToClientEvents {
 
 // Client → server
 export interface ClientToServerEvents {
-  'room:join': (roomId: number) => void;
+  'room:join': (roomId: string) => void;
 }

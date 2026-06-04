@@ -8,8 +8,8 @@ import { useRoomStore } from '../../store/roomStore';
 
 interface Props {
   tasks: Task[];
-  roomId: number;
-  selectedTaskId?: number;
+  roomId: string;
+  selectedTaskId?: string;
   onSelectTask: (task: Task) => void;
 }
 
@@ -40,7 +40,7 @@ export default function TaskList({ tasks, roomId, selectedTaskId, onSelectTask }
           >
             <ListItemText
               primary={task.title}
-              secondary={task.estimation ? `${t('planning.room.final-estimation.label')}: ${task.estimation.card.value}` : undefined}
+              secondary={task.finalEstimation ? `${t('planning.room.final-estimation.label')}: ${task.finalEstimation.value}` : undefined}
             />
           </ListItemButton>
         ))}

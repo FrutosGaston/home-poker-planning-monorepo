@@ -6,7 +6,7 @@ import type { GuestUser } from '../../types';
 import { guestUserService } from '../../services/guestUserService';
 
 interface Props {
-  roomId: number;
+  roomId: string;
   onLogin: (user: GuestUser) => void;
 }
 

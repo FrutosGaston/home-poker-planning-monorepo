@@ -1,51 +1,50 @@
-import type { Card, Deck, GuestUser, Room, Task } from '../types';
+import type { Card, Deck, Estimation, GuestUser, Room, Task } from '../types';
 
 export const mockCards: Card[] = [
-  { id: 1, value: '0', deckId: 1 },
-  { id: 2, value: '1', deckId: 1 },
-  { id: 3, value: '2', deckId: 1 },
-  { id: 4, value: '3', deckId: 1 },
-  { id: 5, value: '5', deckId: 1 },
-  { id: 6, value: '8', deckId: 1 },
-  { id: 7, value: '13', deckId: 1 },
-  { id: 8, value: '21', deckId: 1 },
-  { id: 9, value: '40', deckId: 1 },
-  { id: 10, value: '?', deckId: 1 },
+  { id: 'c1', value: '0' },
+  { id: 'c2', value: '1' },
+  { id: 'c3', value: '2' },
+  { id: 'c4', value: '3' },
+  { id: 'c5', value: '5' },
+  { id: 'c6', value: '8' },
+  { id: 'c7', value: '13' },
+  { id: 'c8', value: '21' },
+  { id: 'c9', value: '40' },
+  { id: 'c10', value: '?' },
 ];
 
-export const mockDeck: Deck = { id: 1, name: 'Fibonacci', cards: mockCards };
+export const mockDeck: Deck = { id: 'd1', name: 'Fibonacci', cards: mockCards };
 
 export const mockRoom: Room = {
-  id: 1,
+  id: 'r1',
   uuid: 'mock-room-uuid-1234',
-  deckId: 1,
+  deckId: 'd1',
   deck: mockDeck,
-  selectedTaskId: 1,
+  selectedTaskId: 't1',
   title: 'Sprint 42 Planning',
   description: 'Mock room for local development',
 };
 
 export const mockTasks: Task[] = [
-  { id: 1, roomId: 1, title: 'Set up authentication', estimations: [] },
-  { id: 2, roomId: 1, title: 'Design database schema', estimations: [] },
-  { id: 3, roomId: 1, title: 'Build REST API endpoints', estimations: [] },
+  { id: 't1', roomId: 'r1', title: 'Set up authentication', estimations: [] as Estimation[], finalEstimation: null },
+  { id: 't2', roomId: 'r1', title: 'Design database schema', estimations: [] as Estimation[], finalEstimation: null },
+  { id: 't3', roomId: 'r1', title: 'Build REST API endpoints', estimations: [] as Estimation[], finalEstimation: null },
 ];
 
-export const mockCurrentUser: GuestUser = { id: 1, name: 'Gaston', roomId: 1, spectator: false };
+export const mockCurrentUser: GuestUser = { id: 'u1', name: 'Gaston', roomId: 'r1', spectator: false };
 
 export const mockUsers: GuestUser[] = [
   mockCurrentUser,
-  { id: 2, name: 'Alice', roomId: 1, spectator: false },
-  { id: 3, name: 'Bob', roomId: 1, spectator: false },
-  { id: 4, name: 'Charlie', roomId: 1, spectator: true },
+  { id: 'u2', name: 'Alice', roomId: 'r1', spectator: false },
+  { id: 'u3', name: 'Bob', roomId: 'r1', spectator: false },
+  { id: 'u4', name: 'Charlie', roomId: 'r1', spectator: true },
 ];
 
-// Mutable state for handlers to mutate during a session
+let nextId = 100;
+export const nextMockId = () => `mock-${nextId++}`;
+
 export const state = {
   room: { ...mockRoom },
-  tasks: mockTasks.map(t => ({ ...t })),
-  users: mockUsers.map(u => ({ ...u })),
-  nextUserId: 20,
-  nextTaskId: 10,
-  nextEstimationId: 100,
+  tasks: mockTasks.map(t => ({ ...t, estimations: [] as Estimation[] })),
+  users: [...mockUsers],
 };

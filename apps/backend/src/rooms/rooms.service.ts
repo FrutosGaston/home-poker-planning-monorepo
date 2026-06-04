@@ -1,32 +1,57 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
+import { Room, RoomDocument } from '../schemas/room.schema';
+import { Deck, DeckDocument } from '../schemas/deck.schema';
 import { EventsGateway } from '../events/events.gateway';
 import { SocketEvents } from '@poker/shared';
 
-const ROOM_INCLUDE = {
-  deck: { include: { cards: true } },
-  tasks: { include: { estimation: { include: { card: true } }, estimations: { include: { card: true } } } },
-  guestUsers: true,
-};
-
 @Injectable()
 export class RoomsService {
-  constructor(private prisma: PrismaService, private events: EventsGateway) {}
+  constructor(
+    @InjectModel(Room.name) private roomModel: Model<RoomDocument>,
+    @InjectModel(Deck.name) private deckModel: Model<DeckDocument>,
+    private events: EventsGateway,
+  ) {}
 
-  async create(data: { title: string; description?: string; deckId: number }) {
-    const room = await this.prisma.room.create({ data, include: ROOM_INCLUDE });
-    return room;
+  async create(data: { title: string; description?: string; deckId: string }) {
+    const deck = await this.deckModel.findById(data.deckId).lean();
+    if (!deck) throw new NotFoundException('Deck not found');
+
+    const room = await this.roomModel.create({ ...data, uuid: uuidv4() });
+    return this.toDTO(room, deck);
   }
 
   async findByUUID(uuid: string) {
-    const room = await this.prisma.room.findUnique({ where: { uuid }, include: ROOM_INCLUDE });
+    const room = await this.roomModel.findOne({ uuid }).lean();
     if (!room) throw new NotFoundException(`Room ${uuid} not found`);
-    return room;
+    const deck = await this.deckModel.findById(room.deckId).lean();
+    return this.toDTO(room, deck);
   }
 
-  async update(id: number, data: { selectedTaskId?: number }) {
-    const room = await this.prisma.room.update({ where: { id }, data, include: ROOM_INCLUDE });
-    this.events.emitToRoom(id, SocketEvents.ROOM_UPDATED, room as any);
-    return room;
+  async update(id: string, data: { selectedTaskId?: string }) {
+    const room = await this.roomModel.findByIdAndUpdate(id, data, { new: true }).lean();
+    if (!room) throw new NotFoundException('Room not found');
+    const deck = await this.deckModel.findById(room.deckId).lean();
+    const dto = this.toDTO(room, deck);
+    this.events.emitToRoom(room._id.toString(), SocketEvents.ROOM_UPDATED, dto);
+    return dto;
+  }
+
+  private toDTO(room: any, deck: any) {
+    return {
+      id: room._id.toString(),
+      uuid: room.uuid,
+      title: room.title,
+      description: room.description,
+      deckId: room.deckId.toString(),
+      selectedTaskId: room.selectedTaskId?.toString(),
+      deck: {
+        id: deck._id.toString(),
+        name: deck.name,
+        cards: deck.cards.map((c: any) => ({ id: c._id.toString(), value: c.value })),
+      },
+    };
   }
 }

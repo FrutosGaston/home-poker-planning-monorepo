@@ -1,16 +1,12 @@
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: poker_planning
+  mongo:
+    image: mongo:7-jammy
     ports:
-      - "5432:5432"
+      - "27017:27017"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mongo_data:/data/db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,11 +18,11 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/poker_planning
+      MONGODB_URI: mongodb://mongo:27017/poker_planning
       PORT: 8080
     depends_on:
-      db:
+      mongo:
         condition: service_healthy
 
 volumes:
-  postgres_data:
+  mongo_data:

@@ -18,7 +18,7 @@ interface RoomState {
   updateTask: (task: Task) => void;
   addUser: (user: GuestUser) => void;
   addEstimation: (estimation: Estimation) => void;
-  clearEstimations: (taskId: number) => void;
+  clearEstimations: (taskId: string) => void;
 }
 
 export const useRoomStore = create<RoomState>((set) => ({
@@ -52,10 +52,9 @@ export const useRoomStore = create<RoomState>((set) => ({
       if (!s.currentTask) return s;
       const already = s.currentTask.estimations.find((e) => e.id === estimation.id);
       if (already) return s;
-      const updated = {
-        ...s.currentTask,
-        estimations: [...s.currentTask.estimations, estimation],
-      };
+      // Replace existing estimation from same user
+      const filtered = s.currentTask.estimations.filter((e) => e.guestUserId !== estimation.guestUserId);
+      const updated = { ...s.currentTask, estimations: [...filtered, estimation] };
       return {
         currentTask: updated,
         tasks: s.tasks.map((t) => (t.id === updated.id ? updated : t)),
@@ -65,13 +64,13 @@ export const useRoomStore = create<RoomState>((set) => ({
   clearEstimations: (taskId) =>
     set((s) => {
       const updated = s.tasks.map((t) =>
-        t.id === taskId ? { ...t, estimations: [], estimationId: undefined, estimation: undefined } : t
+        t.id === taskId ? { ...t, estimations: [], finalEstimation: null } : t
       );
       return {
         tasks: updated,
         currentTask:
           s.currentTask?.id === taskId
-            ? { ...s.currentTask, estimations: [], estimationId: undefined, estimation: undefined }
+            ? { ...s.currentTask, estimations: [], finalEstimation: null }
             : s.currentTask,
       };
     }),
