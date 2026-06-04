@@ -4,8 +4,11 @@ WORKDIR /app
 
 RUN npm install -g pnpm
 
+# Disable pnpm supply-chain age policy before any install
+RUN pnpm config set minimum-release-age 0 --global
+
 # Copy monorepo root files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 
 # Copy packages needed for build
 COPY packages/shared ./packages/shared
