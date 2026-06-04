@@ -19,5 +19,8 @@ FROM nginx:alpine AS runner
 
 COPY --from=builder /app/apps/frontend/dist /usr/share/nginx/html
 
-# Write nginx config at runtime using PORT env var (Railway sets this)
-CMD ["/bin/sh", "-c", "printf 'server {\\n  listen %s;\\n  root /usr/share/nginx/html;\\n  index index.html;\\n  location / { try_files $uri $uri/ /index.html; }\\n  location /health { return 200 ok; add_header Content-Type text/plain; }\\n}\\n' \"${PORT:-80}\" > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+RUN printf 'server {\n  listen 80;\n  root /usr/share/nginx/html;\n  index index.html;\n  location / {\n    try_files $uri $uri/ /index.html;\n  }\n  location /health {\n    access_log off;\n    return 200 "ok";\n    add_header Content-Type text/plain;\n  }\n}\n' > /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
