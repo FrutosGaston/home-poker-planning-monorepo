@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import type { ServerToClientEvents } from '@poker/shared';
 
@@ -11,21 +11,45 @@ let socket: any = null;
 
 const getSocket = () => {
   if (!socket) {
-    socket = io(BACKEND_URL, { transports: ['websocket'] });
+    socket = io(BACKEND_URL, {
+      transports: ['websocket'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: Infinity,
+    });
   }
   return socket;
+};
+
+export const useConnectionStatus = () => {
+  const [connected, setConnected] = useState(true);
+
+  useEffect(() => {
+    if (IS_MOCK) return;
+    const s = getSocket();
+    setConnected(s.connected);
+    const onConnect = () => setConnected(true);
+    const onDisconnect = () => setConnected(false);
+    s.on('connect', onConnect);
+    s.on('disconnect', onDisconnect);
+    return () => {
+      s.off('connect', onConnect);
+      s.off('disconnect', onDisconnect);
+    };
+  }, []);
+
+  return connected;
 };
 
 export const useJoinRoom = (roomId: string | null) => {
   useEffect(() => {
     if (!roomId || IS_MOCK) return;
     const s = getSocket();
+    // Join on connect and reconnect
     const join = () => s.emit('room:join', roomId);
-    if (s.connected) {
-      join();
-    } else {
-      s.once('connect', join);
-    }
+    if (s.connected) join();
+    s.on('connect', join);
     return () => s.off('connect', join);
   }, [roomId]);
 };
@@ -35,7 +59,7 @@ export const useHeartbeat = (userId: string | null) => {
     if (!userId || IS_MOCK) return;
     const s = getSocket();
     const ping = () => s.emit('heartbeat', userId);
-    ping(); // immediate on mount
+    ping();
     const interval = setInterval(ping, HEARTBEAT_INTERVAL);
     return () => clearInterval(interval);
   }, [userId]);

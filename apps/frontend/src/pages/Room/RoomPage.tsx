@@ -3,14 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Box, CircularProgress, Drawer, IconButton,
-  Paper, Toolbar, Tooltip, Typography,
+  Paper, Snackbar, Alert, Toolbar, Tooltip, Typography,
 } from '@mui/material';
 import { List, Share } from '@mui/icons-material';
 import { useRoomStore } from '../../store/roomStore';
 import { roomService } from '../../services/roomService';
 import { taskService } from '../../services/taskService';
 import { guestUserService } from '../../services/guestUserService';
-import { useSocket, useJoinRoom, useHeartbeat } from '../../hooks/useSocket';
+import { useSocket, useJoinRoom, useHeartbeat, useConnectionStatus } from '../../hooks/useSocket';
 import { SocketEvents } from '@poker/shared';
 import UserInRoom from '../../components/room/UserInRoom';
 import EstimationForm from '../../components/room/EstimationForm';
@@ -85,6 +85,9 @@ export default function RoomPage() {
     clearEstimations(currentTask.id);
     setRevealed(false);
   }, [currentTask]);
+
+  // Connection status for reconnecting banner
+  const connected = useConnectionStatus();
 
   // Join the socket.io room channel once
   useJoinRoom(room?.id ?? null);
@@ -284,6 +287,12 @@ export default function RoomPage() {
         )}
       </Box>
 
+      {/* Reconnecting banner */}
+      <Snackbar open={!connected} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Alert severity="warning" sx={{ width: '100%' }}>
+          Connection lost — reconnecting...
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
