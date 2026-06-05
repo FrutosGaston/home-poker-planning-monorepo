@@ -24,4 +24,4 @@ COPY --from=builder /app/apps/backend/package.json ./
 COPY --from=builder /app/node_modules/.pnpm ./node_modules/.pnpm
 
 # Run seed (errors are logged but won't block startup), then start app
-CMD ["sh", "-c", "node dist/seed.js || echo 'Seed failed, continuing...' && node dist/main"]
+CMD ["sh", "-c", "node /app/dist/seed.js || echo 'Seed failed, continuing...' && node /app/dist/main"]
