@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Box, Button, Card as MuiCard, CardActionArea, Typography, Select, MenuItem, FormControl, InputLabel, FormHelperText } from '@mui/material';
+import { Box, Button, Card as MuiCard, CardActionArea, IconButton, Tooltip, Typography, Select, MenuItem, FormControl, InputLabel, FormHelperText } from '@mui/material';
 import { motion } from 'framer-motion';
 import type { Task, GuestUser, Card as CardType } from '../../types';
 import { taskService } from '../../services/taskService';
@@ -24,6 +24,12 @@ export default function EstimationForm({ task, currentUser, cards, revealed, onR
   const setCurrentTask = useRoomStore((s) => s.setCurrentTask);
   const [finalCardId, setFinalCardId] = useState<string>('');
   const [finalError, setFinalError] = useState('');
+  const [fanMode, setFanMode] = useState(() => localStorage.getItem('cardFanMode') !== 'false');
+
+  const toggleFanMode = () => setFanMode((v) => {
+    localStorage.setItem('cardFanMode', String(!v));
+    return !v;
+  });
 
   const myEstimation = task?.estimations?.find((e) => e.guestUserId === currentUser.id);
   const selectedCardId = myEstimation?.card.id;
@@ -63,31 +69,101 @@ export default function EstimationForm({ task, currentUser, cards, revealed, onR
       <Box sx={{ p: 2 }}>
         {!revealed ? (
           <>
-            <Typography variant="subtitle2" gutterBottom>
-              {t('planning.room.choose-a-card')}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-              {cards.map((card) => (
-                <MuiCard
-                  key={card.id}
-                  elevation={selectedCardId === card.id ? 8 : 2}
-                  sx={{
-                    width: 48, height: 64, cursor: 'pointer',
-                    border: selectedCardId === card.id ? '2px solid' : '1px solid',
-                    borderColor: selectedCardId === card.id ? 'primary.main' : 'divider',
-                    transition: 'transform 0.15s',
-                    '&:hover': { transform: 'translateY(-4px)' },
-                  }}
-                >
-                  <CardActionArea sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleVote(card)}>
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{card.value}</Typography>
-                  </CardActionArea>
-                </MuiCard>
-              ))}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+              <Typography variant="subtitle2">{t('planning.room.choose-a-card')}</Typography>
+              <Tooltip title={fanMode ? 'Switch to grid view' : 'Switch to hand view'}>
+                <IconButton onClick={toggleFanMode} sx={{ fontSize: 22 }}>
+                  {fanMode ? '⊞' : '🃏'}
+                </IconButton>
+              </Tooltip>
             </Box>
 
+            {fanMode ? (
+            <Box sx={{ position: 'relative', height: 150, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', mb: 1 }}>
+              {cards.map((card, i) => {
+                const total = cards.length;
+                const mid = (total - 1) / 2;
+                const angle = (i - mid) * (40 / total);
+                const tx = (i - mid) * (540 / total);
+                const isSelected = selectedCardId === card.id;
+
+                return (
+                  <Box
+                    key={card.id}
+                    onClick={() => handleVote(card)}
+                    sx={{
+                      position: 'absolute',
+                      bottom: 0,
+                      width: 84,
+                      height: 120,
+                      cursor: 'pointer',
+                      transformOrigin: 'bottom center',
+                      transform: `translateX(${tx}px) rotate(${angle}deg)`,
+                      transition: 'transform 0.2s ease, z-index 0s',
+                      zIndex: isSelected ? 20 : i,
+                      '&:hover': {
+                        transform: `translateX(${tx}px) rotate(${angle}deg) translateY(-40px) scale(1.1)`,
+                        zIndex: 30,
+                      },
+                    }}
+                  >
+                    <MuiCard
+                      elevation={isSelected ? 10 : 3}
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        border: isSelected ? '2px solid' : '1px solid',
+                        borderColor: isSelected ? 'primary.main' : 'divider',
+                        borderRadius: '8px',
+                        bgcolor: isSelected ? 'primary.dark' : 'background.paper',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        userSelect: 'none',
+                      }}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 700,
+                          color: isSelected ? 'primary.contrastText' : 'text.primary',
+                          fontSize: card.value.length > 2 ? 16 : 22,
+                        }}
+                      >
+                        {card.value}
+                      </Typography>
+                    </MuiCard>
+                  </Box>
+                );
+              })}
+            </Box>
+            ) : (
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center', mb: 1 }}>
+              {cards.map((card) => {
+                const isSelected = selectedCardId === card.id;
+                return (
+                  <MuiCard
+                    key={card.id}
+                    elevation={isSelected ? 8 : 2}
+                    sx={{
+                      width: 48, height: 64, cursor: 'pointer',
+                      border: isSelected ? '2px solid' : '1px solid',
+                      borderColor: isSelected ? 'primary.main' : 'divider',
+                      transition: 'transform 0.15s',
+                      '&:hover': { transform: 'translateY(-4px)' },
+                    }}
+                  >
+                    <CardActionArea sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleVote(card)}>
+                      <Typography variant="h6" sx={{ fontWeight: 700 }}>{card.value}</Typography>
+                    </CardActionArea>
+                  </MuiCard>
+                );
+              })}
+            </Box>
+            )}
+
             {task && (
-              <Button variant="outlined" sx={{ mt: 2 }} onClick={onReveal}>
+              <Button variant="outlined" sx={{ mt: 1 }} onClick={onReveal}>
                 {t('planning.room.flip.button')}
               </Button>
             )}
