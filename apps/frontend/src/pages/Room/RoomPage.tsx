@@ -16,6 +16,7 @@ import UserInRoom from '../../components/room/UserInRoom';
 import EstimationForm from '../../components/room/EstimationForm';
 import RoundTimer from '../../components/room/RoundTimer';
 import EstimationMetrics from '../../components/room/EstimationMetrics';
+import EmojiReactions from '../../components/room/EmojiReactions';
 import TaskList from '../../components/room/TaskList';
 import ShareRoomDialog from '../../components/room/ShareRoomDialog';
 import GuestLoginForm from '../../components/home/GuestLoginForm';
@@ -307,10 +308,13 @@ export default function RoomPage() {
           </Box>
         </Box>
 
-        {/* Metrics */}
+        {/* Metrics + reactions */}
         {(revealed || allVoted) && currentTask && (
           <Paper elevation={2} sx={{ mx: 2, mb: 1, borderRadius: 2 }}>
             <EstimationMetrics task={currentTask} />
+            <Box sx={{ px: 2, pb: 1.5, display: 'flex', justifyContent: 'center' }}>
+              <EmojiReactions />
+            </Box>
           </Paper>
         )}
 
