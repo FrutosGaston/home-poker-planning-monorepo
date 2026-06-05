@@ -20,7 +20,6 @@ interface Props {
 export default function EstimationForm({ task, currentUser, cards, revealed, onReveal, onReset }: Props) {
   const { t } = useTranslation();
   const updateTask = useRoomStore((s) => s.updateTask);
-  const tasks = useRoomStore((s) => s.tasks);
   const room = useRoomStore((s) => s.room);
   const setCurrentTask = useRoomStore((s) => s.setCurrentTask);
   const [finalCardId, setFinalCardId] = useState<string>('');
