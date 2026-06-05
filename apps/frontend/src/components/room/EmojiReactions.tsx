@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Box, Button, Tooltip, Typography } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -13,39 +13,50 @@ interface Reaction {
 export default function EmojiReactions() {
   const [floating, setFloating] = useState<Reaction[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
-  let nextId = 0;
+  const [reacted, setReacted] = useState<Set<string>>(new Set());
+  const nextId = useRef(0);
 
   const react = (emoji: string) => {
-    const id = ++nextId;
+    if (reacted.has(emoji)) return;
+    const id = ++nextId.current;
     const x = Math.random() * 60 - 30;
     setFloating((f) => [...f, { id, emoji, x }]);
     setCounts((c) => ({ ...c, [emoji]: (c[emoji] ?? 0) + 1 }));
+    setReacted((r) => new Set([...r, emoji]));
     setTimeout(() => setFloating((f) => f.filter((r) => r.id !== id)), 1500);
   };
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative' }}>
-      {REACTIONS.map((emoji) => (
-        <Tooltip key={emoji} title={counts[emoji] ? `${counts[emoji]}` : ''}>
-          <Button
-            onClick={() => react(emoji)}
-            sx={{ minWidth: 0, px: 1, fontSize: 18, position: 'relative' }}
-            size="small"
-          >
-            {emoji}
-            {counts[emoji] > 0 && (
-              <Typography
-                variant="caption"
-                sx={{ position: 'absolute', top: -4, right: -4, bgcolor: 'primary.main', color: 'white', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}
+      {REACTIONS.map((emoji) => {
+        const hasReacted = reacted.has(emoji);
+        return (
+          <Tooltip key={emoji} title={hasReacted ? 'Already reacted' : ''}>
+            <span>
+              <Button
+                onClick={() => react(emoji)}
+                disabled={hasReacted}
+                sx={{
+                  minWidth: 0, px: 1, fontSize: 18, position: 'relative',
+                  opacity: hasReacted ? 0.5 : 1,
+                }}
+                size="small"
               >
-                {counts[emoji]}
-              </Typography>
-            )}
-          </Button>
-        </Tooltip>
-      ))}
+                {emoji}
+                {counts[emoji] > 0 && (
+                  <Typography
+                    variant="caption"
+                    sx={{ position: 'absolute', top: -4, right: -4, bgcolor: 'primary.main', color: 'white', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}
+                  >
+                    {counts[emoji]}
+                  </Typography>
+                )}
+              </Button>
+            </span>
+          </Tooltip>
+        );
+      })}
 
-      {/* Floating emoji animations */}
       <AnimatePresence>
         {floating.map((r) => (
           <motion.div

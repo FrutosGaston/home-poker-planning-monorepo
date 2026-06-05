@@ -322,7 +322,10 @@ export default function RoomPage() {
               currentUser={currentUser}
               cards={room?.deck.cards ?? []}
               isHost={isHost}
-              revealed={revealed}
+              revealed={revealed && (
+                !currentTask ||
+                !!currentTask.estimations.find((e) => e.guestUserId === currentUser.id)
+              )}
               onReveal={() => setRevealed(true)}
               onReset={handleReset}
             />

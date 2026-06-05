@@ -12,7 +12,7 @@ interface Props {
 export default function ShareRoomDialog({ open, onClose, uuid }: Props) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
-  const url = `${import.meta.env.VITE_SHARE_ROOM_URL}${uuid}`;
+  const url = `${window.location.origin}/room/${uuid}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(url);
