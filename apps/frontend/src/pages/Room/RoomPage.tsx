@@ -14,6 +14,7 @@ import { useSocket, useJoinRoom, useHeartbeat, useConnectionStatus } from '../..
 import { SocketEvents } from '@poker/shared';
 import UserInRoom from '../../components/room/UserInRoom';
 import EstimationForm from '../../components/room/EstimationForm';
+import RoundTimer from '../../components/room/RoundTimer';
 import EstimationMetrics from '../../components/room/EstimationMetrics';
 import TaskList from '../../components/room/TaskList';
 import ShareRoomDialog from '../../components/room/ShareRoomDialog';
@@ -207,6 +208,7 @@ export default function RoomPage() {
               {t('planning.room.task.title', { title: currentTask.title })}
             </Typography>
           )}
+          <RoundTimer isHost={isHost} />
           {currentUser && (
             <Tooltip title={currentUser.spectator ? 'Switch to voter' : 'Switch to spectator'}>
               <Chip
