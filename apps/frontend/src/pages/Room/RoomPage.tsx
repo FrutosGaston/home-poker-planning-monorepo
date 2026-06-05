@@ -286,11 +286,7 @@ export default function RoomPage() {
                     </Typography>
                   )}
                 </Box>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  {t('planning.room.taskList.button')} →
-                </Typography>
-              )}
+              ) : null}
             </Paper>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', gap: 4, alignSelf: 'stretch', py: 2 }}>

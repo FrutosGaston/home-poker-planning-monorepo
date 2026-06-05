@@ -67,11 +67,6 @@ export default function EstimationForm({ task, currentUser, cards, revealed, onR
           <>
             <Typography variant="subtitle2" gutterBottom>
               {t('planning.room.choose-a-card')}
-              {!task && (
-                <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                  (a task will be created automatically)
-                </Typography>
-              )}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
               {cards.map((card) => (
