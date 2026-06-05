@@ -22,10 +22,14 @@ export class GuestUsersCron {
     const inactiveCutoff = new Date(now - INACTIVE_AFTER_MS);
     const deleteCutoff = new Date(now - DELETE_AFTER_MS);
 
-    // Delete users inactive for >5 min
+    // Delete users inactive for >5 min (or missing lastSeen entirely)
     const toDelete = await this.guestUserModel.find({
-      lastSeen: { $lt: deleteCutoff },
+      $or: [
+        { lastSeen: { $lt: deleteCutoff } },
+        { lastSeen: { $exists: false } },
+      ],
     }).lean();
+
     for (const user of toDelete) {
       await this.guestUserModel.findByIdAndDelete(user._id);
       this.events.emitToRoom(user.roomId.toString(), SocketEvents.GUEST_USER_LEFT, {
@@ -39,6 +43,7 @@ export class GuestUsersCron {
       lastSeen: { $lt: inactiveCutoff, $gte: deleteCutoff },
       inactive: false,
     }).lean();
+
     for (const user of toMarkInactive) {
       await this.guestUserModel.findByIdAndUpdate(user._id, { inactive: true });
       this.events.emitToRoom(user.roomId.toString(), SocketEvents.GUEST_USER_CREATED, {

@@ -94,7 +94,7 @@ export default function EstimationForm({ task, currentUser, cards, revealed, onR
           </>
         ) : (
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <FormControl size="small" error={!!finalError} sx={{ minWidth: 140 }}>
+            <FormControl size="small" error={!!finalError} sx={{ minWidth: 200 }}>
               <InputLabel>{t('planning.room.card.label')}</InputLabel>
               <Select
                 value={finalCardId}
