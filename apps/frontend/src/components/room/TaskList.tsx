@@ -4,7 +4,7 @@ import {
   Box, Button, Chip, Collapse, Divider, List, ListItemButton,
   ListItemText, Tab, Tabs, TextField, Tooltip, Typography,
 } from '@mui/material';
-import { Add, ExpandLess, ExpandMore, CheckCircle, RadioButtonUnchecked } from '@mui/icons-material';
+import { Add, Download, ExpandLess, ExpandMore, CheckCircle, RadioButtonUnchecked } from '@mui/icons-material';
 import type { Task } from '../../types';
 import { taskService } from '../../services/taskService';
 import { useRoomStore } from '../../store/roomStore';
@@ -29,6 +29,28 @@ export default function TaskList({ tasks, roomId, selectedTaskId, onSelectTask }
   const completed = tasks.filter((t) => t.finalEstimation);
   const shown = tab === 0 ? pending : completed;
 
+  const exportCSV = () => {
+    const completed = tasks.filter((t) => t.finalEstimation);
+    if (!completed.length) return;
+    const rows = [
+      ['Task', 'Description', 'Final Estimation', 'Votes'],
+      ...completed.map((t) => [
+        `"${t.title.replace(/"/g, '""')}"`,
+        `"${(t.description ?? '').replace(/"/g, '""')}"`,
+        t.finalEstimation?.value ?? '',
+        String(t.estimations.length),
+      ]),
+    ];
+    const csv = rows.map((r) => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'planning-poker-results.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleCreate = async () => {
     if (!newTitle.trim()) { setError(t('planning.room.task-title.mandatory')); return; }
     const task = await taskService.create({
@@ -44,7 +66,16 @@ export default function TaskList({ tasks, roomId, selectedTaskId, onSelectTask }
 
   return (
     <Box sx={{ width: 300, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Typography variant="h6" sx={{ p: 2, pb: 0 }}>{t('planning.room.taskList.button')}</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, pt: 2 }}>
+        <Typography variant="h6">{t('planning.room.taskList.button')}</Typography>
+        {completed.length > 0 && (
+          <Tooltip title="Export results as CSV">
+            <Button size="small" onClick={exportCSV} startIcon={<Download />} sx={{ minWidth: 0 }}>
+              CSV
+            </Button>
+          </Tooltip>
+        )}
+      </Box>
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 1 }}>
         <Tab label={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
