@@ -32,6 +32,7 @@ export class GuestUsersService {
       { spectator: !user.spectator },
       { new: true },
     ).lean();
+    if (!updated) return null;
     const dto = this.toDTO(updated);
     this.events.emitToRoom(updated.roomId.toString(), SocketEvents.GUEST_USER_CREATED, dto);
     return dto;
