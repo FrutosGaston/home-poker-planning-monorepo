@@ -24,7 +24,7 @@ export default function EstimationForm({ task, currentUser, cards, revealed, onR
   const setCurrentTask = useRoomStore((s) => s.setCurrentTask);
   const [finalCardId, setFinalCardId] = useState<string>('');
   const [finalError, setFinalError] = useState('');
-  const [fanMode, setFanMode] = useState(() => localStorage.getItem('cardFanMode') !== 'false');
+  const [fanMode, setFanMode] = useState(() => localStorage.getItem('cardFanMode') === 'true');
 
   const toggleFanMode = () => setFanMode((v) => {
     localStorage.setItem('cardFanMode', String(!v));
