@@ -1,9 +1,16 @@
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { SocketEvents, ServerToClientEvents, ClientToServerEvents, ReactionPayload } from '@poker/shared';
+import { SocketEvents, ServerToClientEvents, ClientToServerEvents } from '@poker/shared';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { GuestUser, GuestUserDocument } from '../schemas/guest-user.schema';
+
+interface ReactionDto {
+  emoji: string;
+  userId: string;
+  userName: string;
+  roomId: string;
+}
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EventsGateway {
@@ -39,7 +46,7 @@ export class EventsGateway {
   }
 
   @SubscribeMessage('reaction')
-  handleReaction(@MessageBody() data: ReactionPayload) {
+  handleReaction(@MessageBody() data: ReactionDto) {
     // Broadcast to everyone in the room including sender
     this.emitToRoom(data.roomId, SocketEvents.REACTION, data);
   }
