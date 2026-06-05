@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Box, Chip, CircularProgress, Drawer, IconButton,
-  Paper, Snackbar, Alert, Toolbar, Tooltip, Typography,
+  Box, Chip, CircularProgress, Drawer, FormControlLabel, IconButton,
+  Paper, Popover, Snackbar, Alert, Switch, Toolbar, Tooltip, Typography,
 } from '@mui/material';
-import { List, Share } from '@mui/icons-material';
+import { List, Settings, Share } from '@mui/icons-material';
 import { useRoomStore } from '../../store/roomStore';
 import { roomService } from '../../services/roomService';
 import { taskService } from '../../services/taskService';
@@ -35,6 +35,8 @@ export default function RoomPage() {
   const [revealed, setRevealed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [autoReveal, setAutoReveal] = useState(true);
+  const [settingsAnchor, setSettingsAnchor] = useState<null | HTMLElement>(null);
 
   // Load room data
   useEffect(() => {
@@ -141,8 +143,8 @@ export default function RoomPage() {
   );
 
   useEffect(() => {
-    if (allVoted) setRevealed(true);
-  }, [allVoted]);
+    if (allVoted && autoReveal) setRevealed(true);
+  }, [allVoted, autoReveal]);
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}><CircularProgress /></Box>;
 
@@ -172,6 +174,23 @@ export default function RoomPage() {
 
       {/* Share Dialog */}
       {room && <ShareRoomDialog open={shareOpen} onClose={() => setShareOpen(false)} uuid={room.uuid} />}
+
+      {/* Settings Popover */}
+      <Popover
+        open={!!settingsAnchor}
+        anchorEl={settingsAnchor}
+        onClose={() => setSettingsAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Box sx={{ p: 2, minWidth: 220 }}>
+          <Typography variant="subtitle2" gutterBottom>Room Settings</Typography>
+          <FormControlLabel
+            control={<Switch checked={autoReveal} onChange={(e) => setAutoReveal(e.target.checked)} size="small" />}
+            label="Auto-reveal when all voted"
+          />
+        </Box>
+      </Popover>
 
       {/* Main content */}
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -205,6 +224,11 @@ export default function RoomPage() {
               />
             </Tooltip>
           )}
+          <Tooltip title="Settings">
+            <IconButton onClick={(e) => setSettingsAnchor(e.currentTarget)}>
+              <Settings />
+            </IconButton>
+          </Tooltip>
           <Tooltip title={t('planning.room.share.button')}>
             <IconButton onClick={() => setShareOpen(true)}>
               <Share />
