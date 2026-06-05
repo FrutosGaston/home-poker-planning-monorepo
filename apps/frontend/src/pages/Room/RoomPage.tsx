@@ -229,9 +229,16 @@ export default function RoomPage() {
                   {t('planning.room.task.final-estimation', { estimation: currentTask.finalEstimation.value })}
                 </Typography>
               ) : currentTask ? (
-                <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center' }}>
-                  {currentTask.title}
-                </Typography>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="body1" color="text.secondary">
+                    {currentTask.title}
+                  </Typography>
+                  {currentTask.description && (
+                    <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: 'block', maxWidth: 400, mx: 'auto' }}>
+                      {currentTask.description}
+                    </Typography>
+                  )}
+                </Box>
               ) : (
                 <Typography variant="body2" color="text.secondary">
                   {t('planning.room.taskList.button')} →

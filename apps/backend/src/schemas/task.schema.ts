@@ -8,6 +8,7 @@ export type TaskDocument = Task & Document;
 @Schema({ timestamps: true })
 export class Task {
   @Prop({ required: true }) title: string;
+  @Prop() description?: string;
   @Prop({ required: true }) roomId: string;
   @Prop({ type: [EstimationSchema], default: [] }) estimations: Estimation[];
   @Prop({ type: CardSchema, default: null }) finalEstimation: Card | null;

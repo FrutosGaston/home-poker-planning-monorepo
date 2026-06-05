@@ -20,6 +20,7 @@ export interface Task {
   id: string;
   roomId: string;
   title: string;
+  description?: string;
   finalEstimation: Card | null;
   estimations: Estimation[];
 }

@@ -5,7 +5,7 @@ export const taskService = {
   getByRoom: (roomId: string) =>
     api.get<Task[]>('/api/v1/tasks', { params: { roomId } }).then(r => r.data),
 
-  create: (task: { title: string; roomId: string }) =>
+  create: (task: { title: string; description?: string; roomId: string }) =>
     api.post<Task>('/api/v1/tasks', task).then(r => r.data),
 
   update: (taskId: string, data: Partial<Task>) =>

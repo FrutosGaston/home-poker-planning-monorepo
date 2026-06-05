@@ -19,7 +19,7 @@ export class TasksService {
     return tasks.map(this.toDTO);
   }
 
-  async create(data: { title: string; roomId: string }) {
+  async create(data: { title: string; description?: string; roomId: string }) {
     const task = await this.taskModel.create(data);
     const dto = this.toDTO(task.toObject());
     this.events.emitToRoom(data.roomId, SocketEvents.TASK_CREATED, dto);
@@ -92,6 +92,7 @@ export class TasksService {
       id: task._id.toString(),
       roomId: task.roomId.toString(),
       title: task.title,
+      description: task.description,
       finalEstimation: task.finalEstimation
         ? { id: task.finalEstimation._id.toString(), value: task.finalEstimation.value }
         : null,

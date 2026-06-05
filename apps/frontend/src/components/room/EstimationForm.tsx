@@ -17,7 +17,7 @@ interface Props {
   onReset: () => void;
 }
 
-export default function EstimationForm({ task, currentUser, cards, isHost, revealed, onReveal, onReset }: Props) {
+export default function EstimationForm({ task, currentUser, cards, revealed, onReveal, onReset }: Props) {
   const { t } = useTranslation();
   const updateTask = useRoomStore((s) => s.updateTask);
   const tasks = useRoomStore((s) => s.tasks);
@@ -39,7 +39,7 @@ export default function EstimationForm({ task, currentUser, cards, isHost, revea
       activeTask = await taskService.create({ title: `Round ${roundNumber}`, roomId: room.id });
       setCurrentTask(activeTask);
       // Update room's selectedTaskId so all clients sync to the same task via ROOM_UPDATED
-      await roomService.update(room.id, { selectedTaskId: activeTask.id });
+      await roomService.update(room.id, { selectedTaskId: activeTask!.id });
     }
 
     if (!activeTask) return;
