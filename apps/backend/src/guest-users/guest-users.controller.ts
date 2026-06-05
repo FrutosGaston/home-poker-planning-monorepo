@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { GuestUsersService } from './guest-users.service';
 
@@ -15,5 +15,10 @@ export class GuestUsersController {
   @Post()
   create(@Body() body: { name: string; roomId: string; spectator: boolean }) {
     return this.guestUsersService.create(body);
+  }
+
+  @Patch(':id/toggle-spectator')
+  toggleSpectator(@Param('id') id: string) {
+    return this.guestUsersService.toggleSpectator(id);
   }
 }

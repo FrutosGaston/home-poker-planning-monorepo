@@ -24,6 +24,19 @@ export class GuestUsersService {
     return dto;
   }
 
+  async toggleSpectator(id: string) {
+    const user = await this.guestUserModel.findById(id).lean();
+    if (!user) return null;
+    const updated = await this.guestUserModel.findByIdAndUpdate(
+      id,
+      { spectator: !user.spectator },
+      { new: true },
+    ).lean();
+    const dto = this.toDTO(updated);
+    this.events.emitToRoom(updated.roomId.toString(), SocketEvents.GUEST_USER_CREATED, dto);
+    return dto;
+  }
+
   private toDTO(user: any) {
     return {
       id: user._id.toString(),

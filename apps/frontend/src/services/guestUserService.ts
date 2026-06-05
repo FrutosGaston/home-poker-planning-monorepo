@@ -8,6 +8,9 @@ export const guestUserService = {
   findByRoom: (roomId: string) =>
     api.get<GuestUser[]>('/api/v1/guest-users', { params: { roomId } }).then(r => r.data),
 
+  toggleSpectator: (id: string) =>
+    api.patch<GuestUser>(`/api/v1/guest-users/${id}/toggle-spectator`).then(r => r.data),
+
   getLoggedUser: (roomId: string): GuestUser | null => {
     const stored = localStorage.getItem(`usr-${roomId}`);
     return stored ? JSON.parse(stored) : null;

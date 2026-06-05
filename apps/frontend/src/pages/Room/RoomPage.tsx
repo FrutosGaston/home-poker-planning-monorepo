@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Box, CircularProgress, Drawer, IconButton,
+  Box, Chip, CircularProgress, Drawer, IconButton,
   Paper, Snackbar, Alert, Toolbar, Tooltip, Typography,
 } from '@mui/material';
 import { List, Share } from '@mui/icons-material';
@@ -187,6 +187,23 @@ export default function RoomPage() {
             <Typography variant="body2" color="text.secondary">
               {t('planning.room.task.title', { title: currentTask.title })}
             </Typography>
+          )}
+          {currentUser && (
+            <Tooltip title={currentUser.spectator ? 'Switch to voter' : 'Switch to spectator'}>
+              <Chip
+                label={currentUser.spectator ? '👁 Spectator' : '🗳 Voter'}
+                size="small"
+                variant="outlined"
+                onClick={async () => {
+                  const updated = await guestUserService.toggleSpectator(currentUser.id);
+                  if (updated) {
+                    setCurrentUser(updated);
+                    guestUserService.saveLoggedUser(updated);
+                  }
+                }}
+                sx={{ cursor: 'pointer' }}
+              />
+            </Tooltip>
           )}
           <Tooltip title={t('planning.room.share.button')}>
             <IconButton onClick={() => setShareOpen(true)}>
