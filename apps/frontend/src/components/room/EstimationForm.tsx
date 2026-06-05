@@ -35,8 +35,7 @@ export default function EstimationForm({ task, currentUser, cards, revealed, onR
     let activeTask = task ?? null;
 
     if (!activeTask && room) {
-      const roundNumber = tasks.length + 1;
-      activeTask = await taskService.create({ title: `Round ${roundNumber}`, roomId: room.id });
+      activeTask = await taskService.create({ title: 'Estimation', roomId: room.id });
       setCurrentTask(activeTask);
       // Update room's selectedTaskId so all clients sync to the same task via ROOM_UPDATED
       await roomService.update(room.id, { selectedTaskId: activeTask!.id });

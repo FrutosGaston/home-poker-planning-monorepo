@@ -144,6 +144,10 @@ export default function RoomPage() {
     [users, currentTask]
   );
 
+  const currentUserHasVoted = !!currentTask?.estimations.find(
+    (e) => e.guestUserId === currentUser?.id
+  );
+
   useEffect(() => {
     if (allVoted && autoReveal) setRevealed(true);
   }, [allVoted, autoReveal]);
@@ -305,7 +309,7 @@ export default function RoomPage() {
         </Box>
 
         {/* Metrics + reactions */}
-        {(revealed || allVoted) && currentTask && (
+        {(revealed || allVoted) && currentTask && (currentUserHasVoted || currentUser?.spectator) && (
           <Paper elevation={2} sx={{ mx: 2, mb: 1, borderRadius: 2 }}>
             <EstimationMetrics task={currentTask} />
             <Box sx={{ px: 2, pb: 1.5, display: 'flex', justifyContent: 'center' }}>
