@@ -16,7 +16,6 @@ import { guestUserService } from '../../services/guestUserService';
 interface FormValues {
   userName: string;
   roomTitle: string;
-  roomDescription: string;
   deckId: string;
 }
 
@@ -30,7 +29,7 @@ export default function CreateRoomForm() {
   const [copied, setCopied] = useState(false);
 
   const { control, handleSubmit, formState: { errors }, setValue } = useForm<FormValues>({
-    defaultValues: { userName: '', roomTitle: '', roomDescription: '', deckId: '' },
+    defaultValues: { userName: '', roomTitle: '', deckId: '' },
   });
 
   useEffect(() => {
@@ -43,19 +42,10 @@ export default function CreateRoomForm() {
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
-      const room = await roomService.create({
-        title: values.roomTitle,
-        description: values.roomDescription,
-        deckId: values.deckId,
-      });
-      const user = await guestUserService.create({
-        name: values.userName,
-        roomId: room.id,
-        spectator: false,
-      });
+      const room = await roomService.create({ title: values.roomTitle, deckId: values.deckId });
+      const user = await guestUserService.create({ name: values.userName, roomId: room.id, spectator: false });
       guestUserService.saveLoggedUser(user);
-      const url = `${window.location.origin}/room/${room.uuid}`;
-      setShareUrl(url);
+      setShareUrl(`${window.location.origin}/room/${room.uuid}`);
       setRoomUuid(room.uuid);
     } finally {
       setLoading(false);
@@ -63,15 +53,10 @@ export default function CreateRoomForm() {
   };
 
   const handleCopy = () => {
-    if (shareUrl) {
-      navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-    }
+    if (shareUrl) { navigator.clipboard.writeText(shareUrl); setCopied(true); }
   };
 
-  const handleEnterRoom = () => {
-    if (roomUuid) navigate(`/room/${roomUuid}`);
-  };
+  const handleEnterRoom = () => { if (roomUuid) navigate(`/room/${roomUuid}`); };
 
   return (
     <>
@@ -105,15 +90,6 @@ export default function CreateRoomForm() {
         />
 
         <Controller
-          name="roomDescription"
-          control={control}
-          rules={{ maxLength: { value: 255, message: t('planning.home.room-form.description.max') } }}
-          render={({ field }) => (
-            <TextField {...field} label={t('planning.home.room-form.description')} error={!!errors.roomDescription} helperText={errors.roomDescription?.message} fullWidth multiline rows={2} />
-          )}
-        />
-
-        <Controller
           name="deckId"
           control={control}
           rules={{ validate: (v) => v !== '' || t('planning.home.room-form.deck.mandatory') }}
@@ -121,9 +97,7 @@ export default function CreateRoomForm() {
             <FormControl fullWidth error={!!errors.deckId}>
               <InputLabel>{t('planning.home.room-form.deck')}</InputLabel>
               <Select {...field} label={t('planning.home.room-form.deck')}>
-                {decks.map((d) => (
-                  <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
-                ))}
+                {decks.map((d) => <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>)}
               </Select>
               {errors.deckId && <FormHelperText>{errors.deckId.message}</FormHelperText>}
             </FormControl>
@@ -135,7 +109,6 @@ export default function CreateRoomForm() {
         </Button>
       </Box>
 
-      {/* Share dialog shown after room creation */}
       <Dialog open={!!shareUrl} maxWidth="sm" fullWidth>
         <DialogTitle>🎉 Room created!</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '16px !important' }}>
@@ -143,34 +116,17 @@ export default function CreateRoomForm() {
             Share this link with your team so they can join:
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <TextField
-              value={shareUrl ?? ''}
-              fullWidth
-              size="small"
-              slotProps={{ input: { readOnly: true } }}
-              sx={{ fontFamily: 'monospace' }}
-            />
-            <IconButton onClick={handleCopy} color="primary" title="Copy link">
-              <ContentCopy />
-            </IconButton>
+            <TextField value={shareUrl ?? ''} fullWidth size="small" slotProps={{ input: { readOnly: true } }} sx={{ fontFamily: 'monospace' }} />
+            <IconButton onClick={handleCopy} color="primary" title="Copy link"><ContentCopy /></IconButton>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCopy} variant="outlined" startIcon={<ContentCopy />}>
-            Copy link
-          </Button>
-          <Button onClick={handleEnterRoom} variant="contained" endIcon={<ArrowForward />} autoFocus>
-            Enter room
-          </Button>
+          <Button onClick={handleCopy} variant="outlined" startIcon={<ContentCopy />}>Copy link</Button>
+          <Button onClick={handleEnterRoom} variant="contained" endIcon={<ArrowForward />} autoFocus>Enter room</Button>
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={copied}
-        autoHideDuration={2000}
-        onClose={() => setCopied(false)}
-        message="Link copied!"
-      />
+      <Snackbar open={copied} autoHideDuration={2000} onClose={() => setCopied(false)} message="Link copied!" />
     </>
   );
 }

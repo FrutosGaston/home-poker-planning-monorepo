@@ -13,8 +13,6 @@
   "planning.home.room-form.title.mandatory": "Este campo es obligatorio.",
   "planning.home.room-form.title.min": "El nombre debe tener al menos 3 caracteres.",
   "planning.home.room-form.title.max": "El nombre no puede tener más de 20 caracteres.",
-  "planning.home.room-form.description": "Descripción (Opcional)",
-  "planning.home.room-form.description.max": "La descripción no puede tener más de 255 caracteres.",
   "planning.home.room-form.deck": "Mazo",
   "planning.home.room-form.deck.mandatory": "Este campo es obligatorio.",
   "planning.home.room-form.submit": "Iniciar",

@@ -13,8 +13,6 @@
   "planning.home.room-form.title.mandatory": "This field is mandatory.",
   "planning.home.room-form.title.min": "Title must be at least 3 characters long.",
   "planning.home.room-form.title.max": "Title cannot have more than 20 characters.",
-  "planning.home.room-form.description": "Description (Optional)",
-  "planning.home.room-form.description.max": "Description cannot have more than 255 characters.",
   "planning.home.room-form.deck": "Deck",
   "planning.home.room-form.deck.mandatory": "This field is mandatory.",
   "planning.home.room-form.submit": "Start",
