@@ -1,5 +1,12 @@
 import type { Estimation, GuestUser, Room, Task } from './types';
 
+export interface ReactionPayload {
+  emoji: string;
+  userId: string;
+  userName: string;
+  roomId: string;
+}
+
 export const SocketEvents = {
   ESTIMATION_CREATED: 'estimations:created',
   TASK_ESTIMATED: 'tasks:estimated',
@@ -8,6 +15,7 @@ export const SocketEvents = {
   ROOM_UPDATED: 'room:updated',
   GUEST_USER_CREATED: 'guest-users:created',
   GUEST_USER_LEFT: 'guest-users:left',
+  REACTION: 'reaction',
 } as const;
 
 export type SocketEventName = typeof SocketEvents[keyof typeof SocketEvents];
@@ -20,9 +28,11 @@ export interface ServerToClientEvents {
   [SocketEvents.ROOM_UPDATED]: (data: Room) => void;
   [SocketEvents.GUEST_USER_CREATED]: (data: GuestUser) => void;
   [SocketEvents.GUEST_USER_LEFT]: (data: GuestUser) => void;
+  [SocketEvents.REACTION]: (data: ReactionPayload) => void;
 }
 
 export interface ClientToServerEvents {
   'room:join': (roomId: string) => void;
   'heartbeat': (userId: string) => void;
+  'reaction': (data: ReactionPayload) => void;
 }

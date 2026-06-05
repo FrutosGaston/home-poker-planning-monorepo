@@ -1,6 +1,6 @@
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { SocketEvents, ServerToClientEvents, ClientToServerEvents } from '@poker/shared';
+import { SocketEvents, ServerToClientEvents, ClientToServerEvents, ReactionPayload } from '@poker/shared';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { GuestUser, GuestUserDocument } from '../schemas/guest-user.schema';
@@ -25,7 +25,6 @@ export class EventsGateway {
     const prev = await this.guestUserModel.findById(userId).lean();
     await this.guestUserModel.findByIdAndUpdate(userId, { lastSeen: new Date(), inactive: false });
 
-    // If user was previously inactive, broadcast they're back
     if (prev?.inactive) {
       const dto = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,6 +36,12 @@ export class EventsGateway {
       };
       this.emitToRoom(prev.roomId.toString(), SocketEvents.GUEST_USER_CREATED, dto);
     }
+  }
+
+  @SubscribeMessage('reaction')
+  handleReaction(@MessageBody() data: ReactionPayload) {
+    // Broadcast to everyone in the room including sender
+    this.emitToRoom(data.roomId, SocketEvents.REACTION, data);
   }
 
   emitToRoom<K extends keyof ServerToClientEvents>(

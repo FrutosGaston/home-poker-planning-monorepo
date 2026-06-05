@@ -9,7 +9,7 @@ const HEARTBEAT_INTERVAL = 30_000;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let socket: any = null;
 
-const getSocket = () => {
+export const getSocket = () => {
   if (!socket) {
     socket = io(BACKEND_URL, {
       transports: ['websocket'],
