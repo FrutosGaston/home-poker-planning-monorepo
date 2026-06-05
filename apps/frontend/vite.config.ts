@@ -6,9 +6,12 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      // Point @poker/shared directly to source so Vite handles it natively
-      // — no need to rebuild dist when shared types change
       '@poker/shared': path.resolve(__dirname, '../../packages/shared/src/index.ts'),
     },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test/setup.ts',
   },
 });

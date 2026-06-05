@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { buildCsvContent } from '../../utils/exportCsv';
 import { useTranslation } from 'react-i18next';
 import {
   Box, Button, Chip, Collapse, Divider, List, ListItemButton,
@@ -30,18 +31,8 @@ export default function TaskList({ tasks, roomId, selectedTaskId, onSelectTask }
   const shown = tab === 0 ? pending : completed;
 
   const exportCSV = () => {
-    const completed = tasks.filter((t) => t.finalEstimation);
-    if (!completed.length) return;
-    const rows = [
-      ['Task', 'Description', 'Final Estimation', 'Votes'],
-      ...completed.map((t) => [
-        `"${t.title.replace(/"/g, '""')}"`,
-        `"${(t.description ?? '').replace(/"/g, '""')}"`,
-        t.finalEstimation?.value ?? '',
-        String(t.estimations.length),
-      ]),
-    ];
-    const csv = rows.map((r) => r.join(',')).join('\n');
+    const csv = buildCsvContent(tasks);
+    if (!csv) return;
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
