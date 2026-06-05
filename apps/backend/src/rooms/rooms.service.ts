@@ -18,7 +18,6 @@ export class RoomsService {
   async create(data: { title: string; description?: string; deckId: string }) {
     const deck = await this.deckModel.findById(data.deckId).lean();
     if (!deck) throw new NotFoundException('Deck not found');
-
     const room = await this.roomModel.create({ ...data, uuid: uuidv4() });
     return this.toDTO(room, deck);
   }
@@ -30,7 +29,7 @@ export class RoomsService {
     return this.toDTO(room, deck);
   }
 
-  async update(id: string, data: { selectedTaskId?: string }) {
+  async update(id: string, data: { selectedTaskId?: string; autoReveal?: boolean }) {
     const room = await this.roomModel.findByIdAndUpdate(id, data, { new: true }).lean();
     if (!room) throw new NotFoundException('Room not found');
     const deck = await this.deckModel.findById(room.deckId).lean();
@@ -47,6 +46,7 @@ export class RoomsService {
       description: room.description,
       deckId: room.deckId.toString(),
       selectedTaskId: room.selectedTaskId?.toString(),
+      autoReveal: room.autoReveal ?? true,
       deck: {
         id: deck._id.toString(),
         name: deck.name,

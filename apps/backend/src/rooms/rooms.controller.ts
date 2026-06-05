@@ -18,7 +18,7 @@ export class RoomsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() body: { selectedTaskId?: string }) {
+  update(@Param('id') id: string, @Body() body: { selectedTaskId?: string; autoReveal?: boolean }) {
     return this.roomsService.update(id, body);
   }
 }

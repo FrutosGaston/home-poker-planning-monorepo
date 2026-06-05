@@ -37,8 +37,14 @@ export default function RoomPage() {
   const [revealed, setRevealed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [autoReveal, setAutoReveal] = useState(true);
   const [settingsAnchor, setSettingsAnchor] = useState<null | HTMLElement>(null);
+
+  // autoReveal is stored on the room so it's shared across all clients
+  const autoReveal = room?.autoReveal ?? true;
+  const setAutoReveal = async (value: boolean) => {
+    if (!room) return;
+    await roomService.update(room.id, { autoReveal: value });
+  };
 
   // Load room data
   useEffect(() => {
@@ -309,7 +315,7 @@ export default function RoomPage() {
         </Box>
 
         {/* Metrics + reactions */}
-        {(revealed || allVoted) && currentTask && (currentUserHasVoted || currentUser?.spectator) && (
+        {revealed && currentTask && (currentUserHasVoted || currentUser?.spectator) && (
           <Paper elevation={2} sx={{ mx: 2, mb: 1, borderRadius: 2 }}>
             <EstimationMetrics task={currentTask} />
             <Box sx={{ px: 2, pb: 1.5, display: 'flex', justifyContent: 'center' }}>

@@ -8,6 +8,6 @@ export const roomService = {
   getByUUID: (uuid: string) =>
     api.get<Room>(`/api/v1/rooms/${uuid}`).then(r => r.data),
 
-  update: (roomId: string, data: { selectedTaskId: string }) =>
+  update: (roomId: string, data: { selectedTaskId?: string; autoReveal?: boolean }) =>
     api.patch<Room>(`/api/v1/rooms/${roomId}`, data).then(r => r.data),
 };

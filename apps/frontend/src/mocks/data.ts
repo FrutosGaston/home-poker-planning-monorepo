@@ -23,6 +23,7 @@ export const mockRoom: Room = {
   selectedTaskId: 't1',
   title: 'Sprint 42 Planning',
   description: 'Mock room for local development',
+  autoReveal: true,
 };
 
 export const mockTasks: Task[] = [

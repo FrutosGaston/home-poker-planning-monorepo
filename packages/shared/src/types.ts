@@ -33,6 +33,7 @@ export interface Room {
   selectedTaskId?: string;
   title: string;
   description?: string;
+  autoReveal: boolean;
 }
 
 export interface GuestUser {

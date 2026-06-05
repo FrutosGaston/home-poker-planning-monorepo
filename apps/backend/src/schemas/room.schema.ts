@@ -10,6 +10,7 @@ export class Room {
   @Prop() description?: string;
   @Prop({ type: Types.ObjectId, ref: 'Deck', required: true }) deckId: Types.ObjectId;
   @Prop({ type: Types.ObjectId, ref: 'Task', default: null }) selectedTaskId: Types.ObjectId | null;
+  @Prop({ default: true }) autoReveal: boolean;
 }
 
 export const RoomSchema = SchemaFactory.createForClass(Room);
