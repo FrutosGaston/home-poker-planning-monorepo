@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Box, Button, Collapse, Divider, List, ListItemButton, ListItemText, TextField, Tooltip, Typography } from '@mui/material';
-import { Add, ExpandLess, ExpandMore } from '@mui/icons-material';
+import {
+  Box, Button, Chip, Collapse, Divider, List, ListItemButton,
+  ListItemText, Tab, Tabs, TextField, Tooltip, Typography,
+} from '@mui/material';
+import { Add, ExpandLess, ExpandMore, CheckCircle, RadioButtonUnchecked } from '@mui/icons-material';
 import type { Task } from '../../types';
 import { taskService } from '../../services/taskService';
 import { useRoomStore } from '../../store/roomStore';
@@ -16,10 +19,15 @@ interface Props {
 export default function TaskList({ tasks, roomId, selectedTaskId, onSelectTask }: Props) {
   const { t } = useTranslation();
   const addTask = useRoomStore((s) => s.addTask);
+  const [tab, setTab] = useState(0);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [showDescription, setShowDescription] = useState(false);
   const [error, setError] = useState('');
+
+  const pending = tasks.filter((t) => !t.finalEstimation);
+  const completed = tasks.filter((t) => t.finalEstimation);
+  const shown = tab === 0 ? pending : completed;
 
   const handleCreate = async () => {
     if (!newTitle.trim()) { setError(t('planning.room.task-title.mandatory')); return; }
@@ -35,11 +43,30 @@ export default function TaskList({ tasks, roomId, selectedTaskId, onSelectTask }
   };
 
   return (
-    <Box sx={{ width: 280, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Typography variant="h6" sx={{ p: 2 }}>{t('planning.room.taskList.button')}</Typography>
+    <Box sx={{ width: 300, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Typography variant="h6" sx={{ p: 2, pb: 0 }}>{t('planning.room.taskList.button')}</Typography>
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 1 }}>
+        <Tab label={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <RadioButtonUnchecked sx={{ fontSize: 16 }} />
+            Pending {pending.length > 0 && <Chip label={pending.length} size="small" sx={{ height: 16, fontSize: 10 }} />}
+          </Box>
+        } />
+        <Tab label={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <CheckCircle sx={{ fontSize: 16 }} color="success" />
+            Done {completed.length > 0 && <Chip label={completed.length} size="small" color="success" sx={{ height: 16, fontSize: 10 }} />}
+          </Box>
+        } />
+      </Tabs>
       <Divider />
       <List sx={{ flexGrow: 1, overflow: 'auto' }}>
-        {tasks.map((task) => (
+        {shown.length === 0 && (
+          <Typography variant="caption" color="text.disabled" sx={{ p: 2, display: 'block', textAlign: 'center' }}>
+            {tab === 0 ? 'No pending tasks' : 'No completed tasks yet'}
+          </Typography>
+        )}
+        {shown.map((task) => (
           <Tooltip
             key={task.id}
             title={task.description || ''}
@@ -52,11 +79,12 @@ export default function TaskList({ tasks, roomId, selectedTaskId, onSelectTask }
             >
               <ListItemText
                 primary={task.title}
-                secondary={task.finalEstimation
-                  ? `${t('planning.room.final-estimation.label')}: ${task.finalEstimation.value}`
-                  : task.description
-                    ? <Typography variant="caption" color="text.secondary" noWrap>{task.description}</Typography>
-                    : undefined
+                secondary={
+                  task.finalEstimation
+                    ? <Chip label={task.finalEstimation.value} size="small" color="primary" sx={{ height: 18, fontSize: 11 }} />
+                    : task.description
+                      ? <Typography variant="caption" color="text.secondary" noWrap>{task.description}</Typography>
+                      : undefined
                 }
               />
             </ListItemButton>
