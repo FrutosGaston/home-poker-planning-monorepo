@@ -93,7 +93,7 @@ export default function EstimationForm({ task, currentUser, cards, isHost, revea
               ))}
             </Box>
 
-            {isHost && task && (
+            {task && (
               <Button variant="outlined" sx={{ mt: 2 }} onClick={onReveal}>
                 {t('planning.room.flip.button')}
               </Button>
